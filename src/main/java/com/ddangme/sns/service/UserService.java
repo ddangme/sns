@@ -6,6 +6,7 @@ import com.ddangme.sns.model.User;
 import com.ddangme.sns.model.entity.UserEntity;
 import com.ddangme.sns.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -15,6 +16,7 @@ import java.util.Optional;
 public class UserService {
 
     private final UserEntityRepository userEntityRepository;
+    private final BCryptPasswordEncoder encoder;
 
     // TODO : implement
     public User join(String userName, String password) {
@@ -25,7 +27,7 @@ public class UserService {
                 });
 
         // 회원가입 진행 ( user 등록 )
-        UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, password));
+        UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, encoder.encode(password)));
 
         return User.fromEntity(userEntity);
     }
