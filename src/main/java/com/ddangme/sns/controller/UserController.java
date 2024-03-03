@@ -1,8 +1,10 @@
 package com.ddangme.sns.controller;
 
 import com.ddangme.sns.controller.request.UserJoinRequest;
+import com.ddangme.sns.controller.request.UserLoginRequest;
 import com.ddangme.sns.controller.response.Response;
 import com.ddangme.sns.controller.response.UserJoinResponse;
+import com.ddangme.sns.controller.response.UserLoginResponse;
 import com.ddangme.sns.model.User;
 import com.ddangme.sns.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,5 +26,12 @@ public class UserController {
         User user = userService.join(request.getUserName(), request.getPassword());
 
         return Response.success(UserJoinResponse.fromUser(user));
+    }
+
+    @PostMapping("/login")
+    public Response<UserLoginResponse> login(@RequestBody UserLoginRequest request) {
+        String token = userService.login(request.getUserName(), request.getPassword());
+
+        return Response.success(new UserLoginResponse(token));
     }
 }
