@@ -2,6 +2,7 @@ package com.ddangme.sns.service;
 
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
+import com.ddangme.sns.fixture.PostEntityFixture;
 import com.ddangme.sns.model.entity.PostEntity;
 import com.ddangme.sns.model.entity.UserEntity;
 import com.ddangme.sns.repository.PostEntityRepository;
@@ -80,11 +81,14 @@ public class PostServiceTest {
         String userName = "userName";
         Integer postId = 1;
 
+        PostEntity post = PostEntityFixture.get(postId, userName, 1);
+        UserEntity user = post.getUser();
+
         // mocking
         when(userEntityRepository.findByUserName(userName))
-                .thenReturn(Optional.of(mock(UserEntity.class)));
-        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(mock(PostEntity.class)));
-        when(postEntityRepository.save(any())).thenReturn(mock(PostEntity.class));
+                .thenReturn(Optional.of(user));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postEntityRepository.saveAndFlush(any())).thenReturn(post);
 
         // When & Then
         assertThatCode(() -> postService.modify(userName, postId, title, body))
@@ -100,8 +104,14 @@ public class PostServiceTest {
         String userName = "userName";
         Integer postId = 1;
 
+        PostEntity post = PostEntityFixture.get(postId, userName, 1);
+        UserEntity user = post.getUser();
+
         // mocking
+        when(userEntityRepository.findByUserName(userName))
+                .thenReturn(Optional.of(user));
         when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+        when(postEntityRepository.saveAndFlush(any())).thenReturn(post);
 
         // When & Then
         SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.modify(userName, postId, title, body));

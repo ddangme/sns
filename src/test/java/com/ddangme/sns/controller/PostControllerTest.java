@@ -4,6 +4,8 @@ import com.ddangme.sns.controller.request.PostCreateRequest;
 import com.ddangme.sns.controller.request.PostModifyRequest;
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
+import com.ddangme.sns.fixture.PostEntityFixture;
+import com.ddangme.sns.model.Post;
 import com.ddangme.sns.service.PostService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +23,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -67,6 +69,11 @@ public class PostControllerTest {
     @Test
     @WithMockUser
     void modify_post() throws Exception {
+        String title = "title";
+        String body = "body";
+        when(postService.modify(any(), any(), eq(title), eq(body)))
+                .thenReturn(Post.formEntity(PostEntityFixture.get(1, "userName", 1)));
+
         mockMvc.perform(put("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body")))
