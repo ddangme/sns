@@ -4,8 +4,6 @@ import com.ddangme.sns.controller.request.PostCreateRequest;
 import com.ddangme.sns.controller.request.PostModifyRequest;
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
-import com.ddangme.sns.fixture.PostEntityFixture;
-import com.ddangme.sns.model.Post;
 import com.ddangme.sns.service.PostService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,9 +21,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -59,21 +57,16 @@ public class PostControllerTest {
     @Test
     @WithAnonymousUser // 테스트를 실행할 때 인증되지 않은 사용자로 설정한다. 이를 통해 사용자가 로그인하지 않은 상태에서의 동작을 테스트할 수 있다.
     void create_post_no_login() throws Exception {mockMvc.perform(post("/api/v1/posts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body")))
-                ).andDo(print())
-                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsBytes(new PostCreateRequest("title", "body")))
+            ).andDo(print())
+            .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
     }
 
     @DisplayName("포스트 수정 - 정상 동작")
     @Test
     @WithMockUser
     void modify_post() throws Exception {
-        String title = "title";
-        String body = "body";
-        when(postService.modify(any(), any(), eq(title), eq(body)))
-                .thenReturn(Post.formEntity(PostEntityFixture.get(1, "userName", 1)));
-
         mockMvc.perform(put("/api/v1/posts/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body")))
@@ -114,6 +107,53 @@ public class PostControllerTest {
                         .content(objectMapper.writeValueAsBytes(new PostModifyRequest("title", "body"))))
                 .andDo(print())
                 .andExpect(status().is(ErrorCode.POST_NOT_FOUND.getStatus().value()));
+    }
+
+    @DisplayName("포스트 삭제 - 정상 동작")
+    @Test
+    @WithMockUser
+    void delete_post() throws Exception {
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @DisplayName("포스트 삭제 - 미로그인 상태")
+    @Test
+    @WithAnonymousUser
+    void delete_post_no_login() throws Exception {
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("포스트 삭제 - 작성자가 아닌 경우")
+    @Test
+    @WithMockUser
+    void delete_post_not_writer() throws Exception {
+        // mocking
+        doThrow(new SnsApplicationException(ErrorCode.INVALID_PERMISSION))
+                .when(postService).delete(any(), any());
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("포스트 삭제 - 포스트가 존재하지 않는 경우")
+    @Test
+    @WithMockUser
+    void delete_post_none_exist_post() throws Exception {
+        // mocking
+        doThrow(new SnsApplicationException(ErrorCode.POST_NOT_FOUND))
+                .when(postService).delete(any(), any());
+
+        mockMvc.perform(delete("/api/v1/posts/1")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
     }
 
 

@@ -31,11 +31,11 @@ public class PostService {
 
     @Transactional
     public Post modify(String userName, Integer postId, String title, String body) {
-        UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() ->
-                new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", userName)));
+        UserEntity userEntity = userEntityRepository.findByUserName(userName)
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", userName)));
         // post exist
         PostEntity postEntity = postEntityRepository.findById(postId).orElseThrow(() ->
-                new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("$s not founded", postId)));
+                new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s not founded", postId)));
 
         // post permission
         if (postEntity.getUser() != userEntity) {
@@ -46,6 +46,22 @@ public class PostService {
         postEntity.setBody(body);
 
         return Post.formEntity(postEntityRepository.saveAndFlush(postEntity));
+    }
+
+    @Transactional
+    public void delete(String userName, Integer postId) {
+        UserEntity userEntity = userEntityRepository.findByUserName(userName)
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", userName)));
+        // post exist
+        PostEntity postEntity = postEntityRepository.findById(postId).orElseThrow(() ->
+                new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s not founded", postId)));
+
+        // post permission
+        if (postEntity.getUser() != userEntity) {
+            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", userName, postId));
+        }
+
+        postEntityRepository.delete(postEntity);
     }
 
 }
