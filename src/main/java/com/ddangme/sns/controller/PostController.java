@@ -1,14 +1,13 @@
 package com.ddangme.sns.controller;
 
 import com.ddangme.sns.controller.request.PostCreateRequest;
+import com.ddangme.sns.controller.response.PostResponse;
 import com.ddangme.sns.controller.response.Response;
+import com.ddangme.sns.model.Post;
 import com.ddangme.sns.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -22,5 +21,12 @@ public class PostController {
         postService.create(request.getTitle(), request.getBody(), authentication.getName());
 
         return Response.success();
+    }
+
+    @PutMapping("/{postId}")
+    public Response<PostResponse> modify(@PathVariable Integer postId, @RequestBody PostCreateRequest request, Authentication authentication) {
+        Post post = postService.modify(authentication.getName(), postId, request.getTitle(), request.getBody());
+
+        return Response.success(PostResponse.formPost(post));
     }
 }
