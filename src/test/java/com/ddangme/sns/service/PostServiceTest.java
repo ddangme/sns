@@ -153,6 +153,61 @@ public class PostServiceTest {
         assertThat(e.getErrorCode()).isEqualTo(ErrorCode.INVALID_PERMISSION);
     }
 
+    @DisplayName("포스트 삭제 - 정상 동작")
+    @Test
+    void delete_post() {
+        // Given
+        String userName = "userName";
+        Integer postId = 1;
+
+        PostEntity post = PostEntityFixture.get(postId, userName, 1);
+        UserEntity user = post.getUser();
+
+        // mocking
+        when(userEntityRepository.findByUserName(userName))
+                .thenReturn(Optional.of(user));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(post));
+
+        // When & Then
+        assertThatCode(() -> postService.delete(userName, postId))
+                .doesNotThrowAnyException();
+    }
+
+    @DisplayName("포스트 삭제 - 존재하지 않는 경우")
+    @Test
+    void delete_post_none_exist_post() {
+        // Given
+        String userName = "userName";
+        Integer postId = 1;
+
+        PostEntity post = PostEntityFixture.get(postId, userName, 1);
+        UserEntity user = post.getUser();
+
+        // mocking
+        when(userEntityRepository.findByUserName(userName))
+                .thenReturn(Optional.of(user));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // When & Then
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.delete(userName, postId));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.POST_NOT_FOUND);
+    }
+
+    @DisplayName("포스트 삭제 - 권한이 없는 경우")
+    @Test
+    void delete_post_no_have_auth() {
+        PostEntity mockPostEntity = mock(PostEntity.class);
+        UserEntity mockUserEntity = mock(UserEntity.class);
+
+        Integer postId = 1;
+        String userName = "name";
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(mockPostEntity));
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(mockUserEntity));
+        when(mockPostEntity.getUser()).thenReturn(mock(UserEntity.class));
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.delete(userName, postId));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.INVALID_PERMISSION);
+    }
+
 
 
 
