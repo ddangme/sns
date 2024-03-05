@@ -1,8 +1,5 @@
 package com.ddangme.sns.model.entity;
 
-import com.ddangme.sns.model.UserRole;
-import lombok.Getter;
-import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -11,24 +8,23 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "users")
-@Getter
-@Setter
-@SQLDelete(sql = "UPDATED users SET deleted_at = NOW() WHERE id = ?")
+@Table(name = "post")
+@SQLDelete(sql = "UPDATED post SET deleted_at = NOW() WHERE id = ?")
 @Where(clause = "deleted_at is NULL")
-public class UserEntity {
+public class PostEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
     private Integer id;
 
-    private String userName;
+    private String title;
 
-    private String password;
+    @Column(columnDefinition = "TEXT")
+    private String body;
 
-    @Enumerated(EnumType.STRING)
-    private UserRole role = UserRole.USER;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
 
     private Timestamp registeredAt;
 
@@ -46,12 +42,6 @@ public class UserEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public static UserEntity of(String userName, String password) {
-        UserEntity userEntity = new UserEntity();
 
-        userEntity.setUserName(userName);
-        userEntity.setPassword(password);
 
-        return userEntity;
-    }
 }
