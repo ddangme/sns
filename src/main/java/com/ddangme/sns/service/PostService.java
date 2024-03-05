@@ -27,4 +27,11 @@ public class PostService {
         // save post
         postEntityRepository.save(PostEntity.of(title, body, userEntity));
     }
+
+    @Transactional
+    public void modify(String userName, Integer postId, String title, String body) {
+        // find user
+
+        // save post
+    }
 }

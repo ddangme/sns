@@ -6,8 +6,6 @@ import com.ddangme.sns.model.entity.PostEntity;
 import com.ddangme.sns.model.entity.UserEntity;
 import com.ddangme.sns.repository.PostEntityRepository;
 import com.ddangme.sns.repository.UserEntityRepository;
-import org.assertj.core.api.AbstractThrowableAssert;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +68,82 @@ public class PostServiceTest {
         // When & Then
         SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.create(title, body, userName));
         assertThat(e.getErrorCode()).isEqualTo(ErrorCode.USER_NOT_FOUND);
-
     }
+
+
+    @DisplayName("포스트 수정 - 정상 동작")
+    @Test
+    void modify_post() {
+        // Given
+        String title = "title";
+        String body = "body";
+        String userName = "userName";
+        Integer postId = 1;
+
+        // mocking
+        when(userEntityRepository.findByUserName(userName))
+                .thenReturn(Optional.of(mock(UserEntity.class)));
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(mock(PostEntity.class)));
+        when(postEntityRepository.save(any())).thenReturn(mock(PostEntity.class));
+
+        // When & Then
+        assertThatCode(() -> postService.modify(userName, postId, title, body))
+                .doesNotThrowAnyException();
+    }
+
+    @DisplayName("포스트 수정 - 포스트가 존재하지 않는 경우")
+    @Test
+    void modify_post_none_exist_post() {
+        // Given
+        String title = "title";
+        String body = "body";
+        String userName = "userName";
+        Integer postId = 1;
+
+        // mocking
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.empty());
+
+        // When & Then
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.modify(userName, postId, title, body));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.POST_NOT_FOUND);
+    }
+
+    @DisplayName("포스트 수정 - 유저가 존재하지 않을 경우")
+    @Test
+    void modify_post_none_exist_user() {
+        // Given
+        String title = "title";
+        String body = "body";
+        String userName = "userName";
+        Integer postId = 1;
+
+        // mocking
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(mock(PostEntity.class)));
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
+
+        // When & Then
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.modify(userName, postId, title, body));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.USER_NOT_FOUND);
+    }
+
+    @DisplayName("포스트 수정 - 작성자가 아닌 경우")
+    @Test
+    void modify_post_not_writer() {
+        PostEntity mockPostEntity = mock(PostEntity.class);
+        UserEntity mockUserEntity = mock(UserEntity.class);
+
+        Integer postId = 1;
+        String userName = "name";
+        String title = "title";
+        String body = "body";
+        when(postEntityRepository.findById(postId)).thenReturn(Optional.of(mockPostEntity));
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(mockUserEntity));
+        when(mockPostEntity.getUser()).thenReturn(mock(UserEntity.class));
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.modify(userName, postId, title, body));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.INVALID_PERMISSION);
+    }
+
+
+
+
 }
