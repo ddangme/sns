@@ -1,14 +1,15 @@
 package com.ddangme.sns.controller;
 
 import com.ddangme.sns.controller.request.PostCreateRequest;
-import com.ddangme.sns.controller.request.UserJoinRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ddangme.sns.exception.ErrorCode;
+import com.ddangme.sns.service.PostService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -29,6 +30,9 @@ public class PostControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private PostService postService;
 
 
     @DisplayName("포스트 작성 - 정상 동작")
@@ -56,6 +60,6 @@ public class PostControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body)))
                 ).andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().is(ErrorCode.INVALID_TOKEN.getStatus().value()));
     }
 }
