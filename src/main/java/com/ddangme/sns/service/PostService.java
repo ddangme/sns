@@ -105,7 +105,7 @@ public class PostService {
     public Integer likeCount(Integer postId) {
         PostEntity postEntity = getPostEntity(postId);
 
-        return likeEntityRepository.findAllByPost(postEntity).size();
+        return likeEntityRepository.countByPost(postEntity);
     }
 
 }
