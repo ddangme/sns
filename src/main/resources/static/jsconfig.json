@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": "src",
+    "baseUrl": "../../../../front-end/src",
     "paths": {
       "*": ["public/src/*"]
     }
