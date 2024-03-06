@@ -11,7 +11,9 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "comment")
+@Table(name = "comment", indexes = {
+        @Index(name = "post_id_idx", columnList = "post_id")
+})
 @Getter
 @Setter
 @SQLDelete(sql = "UPDATE comment SET deleted_at = NOW() WHERE post_like_id = ?")
