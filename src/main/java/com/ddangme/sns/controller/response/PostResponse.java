@@ -1,7 +1,6 @@
 package com.ddangme.sns.controller.response;
 
 import com.ddangme.sns.model.Post;
-import com.ddangme.sns.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -18,7 +17,7 @@ public class PostResponse {
     private Timestamp updatedAt;
     private Timestamp deletedAt;
 
-    public static PostResponse formPost(Post post) {
+    public static PostResponse fromPost(Post post) {
         return new PostResponse(
                 post.getId(),
                 post.getTitle(),
