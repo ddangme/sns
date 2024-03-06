@@ -83,4 +83,9 @@ public class PostService {
                 .orElseThrow(() -> new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%d not founded", postId)));
     }
 
+    @Transactional
+    public void like(Integer postId, String userName) {
+
+    }
+
 }

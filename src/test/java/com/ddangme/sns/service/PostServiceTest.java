@@ -232,6 +232,39 @@ public class PostServiceTest {
     }
 
 
+    @DisplayName("좋아요 - 정상 동작")
+    @Test
+    void post_like() {
+        // Given
+        UserEntity user = mock(UserEntity.class);
+        PostEntity post = mock(PostEntity.class);
+
+        // When
+        when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
+        when(postEntityRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        // Then
+        assertThatCode(() -> postService.like(post.getId(), user.getUserName())).doesNotThrowAnyException();
+    }
+
+    @DisplayName("좋아요 - 게시글이 없는 경우")
+    @Test
+    void post_like_none_exist_post() {
+        // Given
+        UserEntity user = mock(UserEntity.class);
+        PostEntity post = mock(PostEntity.class);
+
+        // When
+        when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
+        when(postEntityRepository.findById(post.getId())).thenReturn(Optional.empty());
+
+        // Then
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.like(post.getId(), user.getUserName()));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.POST_NOT_FOUND);
+    }
+
+
+
 
 
 }
