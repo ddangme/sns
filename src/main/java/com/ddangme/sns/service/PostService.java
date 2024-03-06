@@ -2,10 +2,13 @@ package com.ddangme.sns.service;
 
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
+import com.ddangme.sns.model.Comment;
 import com.ddangme.sns.model.Post;
+import com.ddangme.sns.model.entity.CommentEntity;
 import com.ddangme.sns.model.entity.LikeEntity;
 import com.ddangme.sns.model.entity.PostEntity;
 import com.ddangme.sns.model.entity.UserEntity;
+import com.ddangme.sns.repository.CommentEntityRepository;
 import com.ddangme.sns.repository.LikeEntityRepository;
 import com.ddangme.sns.repository.PostEntityRepository;
 import com.ddangme.sns.repository.UserEntityRepository;
@@ -15,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class PostService {
     private final PostEntityRepository postEntityRepository;
     private final UserEntityRepository userEntityRepository;
     private final LikeEntityRepository likeEntityRepository;
+    private final CommentEntityRepository commentEntityRepository;
 
     @Transactional
     public void create(String title, String body, String userName) {
@@ -110,7 +113,14 @@ public class PostService {
 
     @Transactional
     public void comment(Integer postId, String userName, String comment) {
+        UserEntity userEntity = getUserEntity(userName);
+        PostEntity postEntity = getPostEntity(postId);
 
+        commentEntityRepository.save(CommentEntity.of(postEntity, userEntity, comment));
     }
 
+    public Page<Comment> getComments(Integer postId, Pageable pageable) {
+        PostEntity postEntity = getPostEntity(postId);
+        return commentEntityRepository.findAllByPost(postEntity, pageable).map(Comment::fromEntity);
+    }
 }

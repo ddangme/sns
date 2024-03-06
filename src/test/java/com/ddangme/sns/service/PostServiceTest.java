@@ -3,9 +3,11 @@ package com.ddangme.sns.service;
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
 import com.ddangme.sns.fixture.PostEntityFixture;
+import com.ddangme.sns.model.entity.CommentEntity;
 import com.ddangme.sns.model.entity.LikeEntity;
 import com.ddangme.sns.model.entity.PostEntity;
 import com.ddangme.sns.model.entity.UserEntity;
+import com.ddangme.sns.repository.CommentEntityRepository;
 import com.ddangme.sns.repository.LikeEntityRepository;
 import com.ddangme.sns.repository.PostEntityRepository;
 import com.ddangme.sns.repository.UserEntityRepository;
@@ -41,6 +43,9 @@ public class PostServiceTest {
 
     @MockBean
     LikeEntityRepository likeEntityRepository;
+
+    @MockBean
+    CommentEntityRepository commentEntityRepository;
 
     @DisplayName("포스트 작성 - 정상 동작")
     @Test
@@ -292,17 +297,21 @@ public class PostServiceTest {
         // Given
         UserEntity user = mock(UserEntity.class);
         PostEntity post = mock(PostEntity.class);
+        CommentEntity comment = mock(CommentEntity.class);
 
         // When
         when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
         when(postEntityRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        when(postEntityRepository.save(any())).thenReturn(mock(PostEntity.class));
+        when(commentEntityRepository.save(any())).thenReturn(mock(CommentEntity.class));
 
         // Then
         assertThatCode(() -> postService.comment(post.getId(), user.getUserName(), any(String.class)))
                 .doesNotThrowAnyException();
     }
 
-    @DisplayName("댓글 - 정상 동작")
+    @DisplayName("댓글 - 미로그인")
     @Test
     void comment_none_login() {
         // Given
@@ -314,8 +323,8 @@ public class PostServiceTest {
         when(postEntityRepository.findById(post.getId())).thenReturn(Optional.of(post));
 
         // Then
-        assertThatCode(() -> postService.comment(post.getId(), user.getUserName(), any(String.class)))
-                .doesNotThrowAnyException();
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.comment(post.getId(), user.getUserName(), any()));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.USER_NOT_FOUND);
     }
 
 
@@ -332,8 +341,8 @@ public class PostServiceTest {
         when(postEntityRepository.findById(post.getId())).thenReturn(Optional.empty());
 
         // Then
-        assertThatCode(() -> postService.comment(post.getId(), user.getUserName(), any(String.class)))
-                .doesNotThrowAnyException();
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.comment(post.getId(), user.getUserName(), any()));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.POST_NOT_FOUND);
     }
 
 
