@@ -1,17 +1,21 @@
 package com.ddangme.sns.controller;
 
+import com.ddangme.sns.controller.request.PostCommentRequest;
 import com.ddangme.sns.controller.request.PostCreateRequest;
 import com.ddangme.sns.controller.request.PostModifyRequest;
+import com.ddangme.sns.controller.response.CommentResponse;
 import com.ddangme.sns.controller.response.PostResponse;
 import com.ddangme.sns.controller.response.Response;
 import com.ddangme.sns.model.Post;
 import com.ddangme.sns.service.PostService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
@@ -58,8 +62,22 @@ public class PostController {
     }
 
     @GetMapping("/{postId}/likes")
-    public Response<Integer> likenCount(@PathVariable Integer postId, Authentication authentication) {
+    public Response<Integer> likeCount(@PathVariable Integer postId, Authentication authentication) {
         return Response.success(postService.likeCount(postId));
     }
 
+    @PostMapping("/{postId}/comments")
+    public Response<Void> comment(@PathVariable Integer postId, @RequestBody PostCommentRequest request, Authentication authentication) {
+        log.error(request.getComment() + "error");
+        postService.comment(postId, authentication.getName(), request.getComment());
+
+        return Response.success();
+    }
+
+    @GetMapping("/{postId}/comments")
+    public Response<Page<CommentResponse>> comment(@PathVariable Integer postId, Pageable pageable, Authentication authentication) {
+        Page<CommentResponse> comments = postService.getComments(postId, pageable).map(CommentResponse::fromComment);
+
+        return Response.success(comments);
+    }
 }
