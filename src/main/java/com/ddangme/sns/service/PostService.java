@@ -3,8 +3,10 @@ package com.ddangme.sns.service;
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
 import com.ddangme.sns.model.Post;
+import com.ddangme.sns.model.entity.LikeEntity;
 import com.ddangme.sns.model.entity.PostEntity;
 import com.ddangme.sns.model.entity.UserEntity;
+import com.ddangme.sns.repository.LikeEntityRepository;
 import com.ddangme.sns.repository.PostEntityRepository;
 import com.ddangme.sns.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +15,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
 
     private final PostEntityRepository postEntityRepository;
     private final UserEntityRepository userEntityRepository;
+    private final LikeEntityRepository likeEntityRepository;
 
     @Transactional
     public void create(String title, String body, String userName) {
@@ -85,7 +90,22 @@ public class PostService {
 
     @Transactional
     public void like(Integer postId, String userName) {
+        UserEntity userEntity = getUserEntity(userName);
+        PostEntity postEntity = getPostEntity(postId);
 
+        likeEntityRepository.findByUserAndPost(userEntity, postEntity)
+                .ifPresent(it -> {
+                    throw new SnsApplicationException(ErrorCode.ALREADY_LIKED, String.format("username %s already like post %d", userName, postId));
+                });
+
+        likeEntityRepository.save(LikeEntity.of(postEntity, userEntity));
+    }
+
+    @Transactional
+    public Integer likeCount(Integer postId) {
+        PostEntity postEntity = getPostEntity(postId);
+
+        return likeEntityRepository.countByPost(postEntity);
     }
 
 }

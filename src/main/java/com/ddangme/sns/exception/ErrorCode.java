@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     DUPLICATED_USER_NAME(HttpStatus.CONFLICT, "User name is duplicated"),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
+    ALREADY_LIKED(HttpStatus.CONFLICT, "User already liked the post"),
     ;
 
     private HttpStatus status;

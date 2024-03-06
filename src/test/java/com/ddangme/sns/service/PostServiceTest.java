@@ -3,8 +3,10 @@ package com.ddangme.sns.service;
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
 import com.ddangme.sns.fixture.PostEntityFixture;
+import com.ddangme.sns.model.entity.LikeEntity;
 import com.ddangme.sns.model.entity.PostEntity;
 import com.ddangme.sns.model.entity.UserEntity;
+import com.ddangme.sns.repository.LikeEntityRepository;
 import com.ddangme.sns.repository.PostEntityRepository;
 import com.ddangme.sns.repository.UserEntityRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -36,6 +38,9 @@ public class PostServiceTest {
 
     @MockBean
     UserEntityRepository userEntityRepository;
+
+    @MockBean
+    LikeEntityRepository likeEntityRepository;
 
     @DisplayName("포스트 작성 - 정상 동작")
     @Test
@@ -242,9 +247,27 @@ public class PostServiceTest {
         // When
         when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
         when(postEntityRepository.findById(post.getId())).thenReturn(Optional.of(post));
+        when(likeEntityRepository.findByUserAndPost(user, post)).thenReturn(Optional.empty());
 
         // Then
         assertThatCode(() -> postService.like(post.getId(), user.getUserName())).doesNotThrowAnyException();
+    }
+
+    @DisplayName("좋아요 - 이미 좋아요를 한 경우")
+    @Test
+    void post_like_already() {
+        // Given
+        UserEntity user = mock(UserEntity.class);
+        PostEntity post = mock(PostEntity.class);
+
+        // When
+        when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
+        when(postEntityRepository.findById(post.getId())).thenReturn(Optional.of(post));
+        when(likeEntityRepository.findByUserAndPost(user, post)).thenReturn(Optional.of(mock(LikeEntity.class)));
+
+        // Then
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> postService.like(post.getId(), user.getUserName()));
+        assertThat(e.getErrorCode()).isEqualTo(ErrorCode.ALREADY_LIKED);
     }
 
     @DisplayName("좋아요 - 게시글이 없는 경우")
