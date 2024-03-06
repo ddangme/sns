@@ -1,5 +1,6 @@
 package com.ddangme.sns.controller;
 
+import com.ddangme.sns.controller.request.PostCommentRequest;
 import com.ddangme.sns.controller.request.PostCreateRequest;
 import com.ddangme.sns.controller.request.PostModifyRequest;
 import com.ddangme.sns.exception.ErrorCode;
@@ -227,9 +228,45 @@ public class PostControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @DisplayName("댓글 - 정상 동작")
+    @Test
+    @WithMockUser
+    void comment() throws Exception {
+        mockMvc.perform(post("/api/v1/posts/1/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new PostCommentRequest("comment"))))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @DisplayName("댓글 - 미로그인")
+    @Test
+    @WithAnonymousUser
+    void comment_none_login() throws Exception {
+        mockMvc.perform(post("/api/v1/posts/1/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new PostCommentRequest("comment"))))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @DisplayName("댓글 - 게시글이 없는 경우")
+    @Test
+    @WithMockUser
+    void comment_none_exist_post() throws Exception {
+        doThrow(new SnsApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).comment(any(), any(), any());
+
+        mockMvc.perform(post("/api/v1/posts/1/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(new PostCommentRequest("comment"))))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+    }
+
 
 
 
 
 
 }
+
