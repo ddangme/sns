@@ -286,8 +286,61 @@ public class PostServiceTest {
         assertThat(e.getErrorCode()).isEqualTo(ErrorCode.POST_NOT_FOUND);
     }
 
+    @DisplayName("댓글 - 정상 동작")
+    @Test
+    void comment() {
+        // Given
+        UserEntity user = mock(UserEntity.class);
+        PostEntity post = mock(PostEntity.class);
+
+        // When
+        when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
+        when(postEntityRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        // Then
+        assertThatCode(() -> postService.comment(post.getId(), user.getUserName(), any(String.class)))
+                .doesNotThrowAnyException();
+    }
+
+    @DisplayName("댓글 - 정상 동작")
+    @Test
+    void comment_none_login() {
+        // Given
+        UserEntity user = mock(UserEntity.class);
+        PostEntity post = mock(PostEntity.class);
+
+        // When
+        when(userEntityRepository.findByUserName(any())).thenReturn(Optional.empty());
+        when(postEntityRepository.findById(post.getId())).thenReturn(Optional.of(post));
+
+        // Then
+        assertThatCode(() -> postService.comment(post.getId(), user.getUserName(), any(String.class)))
+                .doesNotThrowAnyException();
+    }
+
+
+
+    @DisplayName("댓글 - 게시글이 없는 경우")
+    @Test
+    void comment_none_exist_post() {
+        // Given
+        UserEntity user = mock(UserEntity.class);
+        PostEntity post = mock(PostEntity.class);
+
+        // When
+        when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
+        when(postEntityRepository.findById(post.getId())).thenReturn(Optional.empty());
+
+        // Then
+        assertThatCode(() -> postService.comment(post.getId(), user.getUserName(), any(String.class)))
+                .doesNotThrowAnyException();
+    }
+
+
+
 
 
 
 
 }
+
