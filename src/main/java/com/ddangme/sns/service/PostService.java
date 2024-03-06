@@ -93,13 +93,19 @@ public class PostService {
         UserEntity userEntity = getUserEntity(userName);
         PostEntity postEntity = getPostEntity(postId);
 
-        // TODO: 이미 좋아요를 눌렀는지 확인하기
         likeEntityRepository.findByUserAndPost(userEntity, postEntity)
                 .ifPresent(it -> {
                     throw new SnsApplicationException(ErrorCode.ALREADY_LIKED, String.format("username %s already like post %d", userName, postId));
                 });
 
         likeEntityRepository.save(LikeEntity.of(postEntity, userEntity));
+    }
+
+    @Transactional
+    public Integer likeCount(Integer postId) {
+        PostEntity postEntity = getPostEntity(postId);
+
+        return likeEntityRepository.findAllByPost(postEntity).size();
     }
 
 }
