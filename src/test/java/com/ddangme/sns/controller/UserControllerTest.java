@@ -102,29 +102,5 @@ public class UserControllerTest {
     }
 
 
-    @DisplayName("알림 리스트 - 정상 동작")
-    @Test
-    @WithMockUser
-    void alarm_list() throws Exception {
-        when(userService.alarmList(any(), any())).thenReturn(Page.empty());
-
-        mockMvc.perform(get("/api/v1/posts/1/alarm")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    @DisplayName("알림 리스트 - 미로그인")
-    @Test
-    @WithAnonymousUser
-    void alarm_list_none_login() throws Exception {
-        when(userService.alarmList(any(), any())).thenReturn(Page.empty());
-
-        mockMvc.perform(get("/api/v1/posts/1/alarm")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
-                .andExpect(status().isUnauthorized());
-    }
-
 
 }

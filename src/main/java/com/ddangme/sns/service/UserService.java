@@ -65,7 +65,4 @@ public class UserService {
         return token;
     }
 
-    public Page<Void> alarmList(String userName, Pageable pageable) {
-        return Page.empty();
-    }
 }

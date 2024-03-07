@@ -68,7 +68,6 @@ public class PostController {
 
     @PostMapping("/{postId}/comments")
     public Response<Void> comment(@PathVariable Integer postId, @RequestBody PostCommentRequest request, Authentication authentication) {
-        log.error(request.getComment() + "error");
         postService.comment(postId, authentication.getName(), request.getComment());
 
         return Response.success();
