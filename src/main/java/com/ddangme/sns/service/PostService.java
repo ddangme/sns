@@ -73,17 +73,16 @@ public class PostService {
     }
 
     @Transactional
-    public void like(Integer postId, String userName) {
-        UserEntity userEntity = getUserEntity(userName);
+    public void like(Integer postId, User user) {
         PostEntity postEntity = getPostEntity(postId);
 
-        likeEntityRepository.findByUserAndPost(userEntity, postEntity)
+        likeEntityRepository.findByUserIdAndPostId(user.getId(), postId)
                 .ifPresent(it -> {
-                    throw new SnsApplicationException(ErrorCode.ALREADY_LIKED, String.format("username %s already like post %d", userName, postId));
+                    throw new SnsApplicationException(ErrorCode.ALREADY_LIKED, String.format("userId %s already like post %d", user.getId(), postId));
                 });
 
-        likeEntityRepository.save(LikeEntity.of(postEntity, userEntity));
-        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_LIKE_ON_POST, new AlarmArgs(userEntity.getId(), postId)));
+        likeEntityRepository.save(LikeEntity.of(postEntity, user.getId()));
+        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_LIKE_ON_POST, new AlarmArgs(user.getId(), postId)));
     }
 
     @Transactional
@@ -94,12 +93,11 @@ public class PostService {
     }
 
     @Transactional
-    public void comment(Integer postId, String userName, String comment) {
-        UserEntity userEntity = getUserEntity(userName);
+    public void comment(Integer postId, User user, String comment) {
         PostEntity postEntity = getPostEntity(postId);
 
-        commentEntityRepository.save(CommentEntity.of(postEntity, userEntity, comment));
-        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_COMMENT_ON_POST, new AlarmArgs(userEntity.getId(), postId)));
+        commentEntityRepository.save(CommentEntity.of(postEntity, user.getId(), comment));
+        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_COMMENT_ON_POST, new AlarmArgs(user.getId(), postId)));
     }
 
     public Page<Comment> getComments(Integer postId, Pageable pageable) {

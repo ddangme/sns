@@ -58,8 +58,8 @@ public class CommentEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public static CommentEntity of(PostEntity postEntity, UserEntity userEntity, String comment) {
-        return new CommentEntity(postEntity, userEntity, comment);
+    public static CommentEntity of(PostEntity postEntity, Integer userId, String comment) {
+        return new CommentEntity(postEntity, UserEntity.of(userId), comment);
     }
 
 }

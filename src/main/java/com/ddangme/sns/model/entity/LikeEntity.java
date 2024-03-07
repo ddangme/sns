@@ -53,8 +53,8 @@ public class LikeEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public static LikeEntity of(PostEntity postEntity, UserEntity userEntity) {
-        return new LikeEntity(postEntity, userEntity);
+    public static LikeEntity of(PostEntity postEntity, Integer userId) {
+        return new LikeEntity(postEntity, UserEntity.of(userId));
     }
 
 }

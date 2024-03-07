@@ -65,7 +65,7 @@ public class PostController {
     @PostMapping("/{postId}/likes")
     public Response<Void> like(@PathVariable Integer postId, Authentication authentication) {
         User loginUser = getLoginUser(authentication);
-        postService.like(postId, authentication.getName());
+        postService.like(postId, loginUser);
 
         return Response.success();
     }
@@ -78,7 +78,7 @@ public class PostController {
     @PostMapping("/{postId}/comments")
     public Response<Void> comment(@PathVariable Integer postId, @RequestBody PostCommentRequest request, Authentication authentication) {
         User loginUser = getLoginUser(authentication);
-        postService.comment(postId, authentication.getName(), request.getComment());
+        postService.comment(postId, loginUser, request.getComment());
 
         return Response.success();
     }
