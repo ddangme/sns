@@ -5,7 +5,6 @@ import com.ddangme.sns.exception.SnsApplicationException;
 import com.ddangme.sns.model.Alarm;
 import com.ddangme.sns.model.entity.UserEntity;
 import com.ddangme.sns.repository.AlarmEntityRepository;
-import com.ddangme.sns.repository.PostEntityRepository;
 import com.ddangme.sns.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -20,10 +19,8 @@ public class AlarmService {
     private final AlarmEntityRepository alarmEntityRepository;
 
 
-    public Page<Alarm> alarmList(String userName, Pageable pageable) {
-        UserEntity userEntity = getUserEntity(userName);
-
-        return alarmEntityRepository.findAllByUser(userEntity, pageable).map(Alarm::fromEntity);
+    public Page<Alarm> alarmList(Integer userId, Pageable pageable) {
+        return alarmEntityRepository.findAllByUserId(userId, pageable).map(Alarm::fromEntity);
     }
 
     private UserEntity getUserEntity(String userName) {
