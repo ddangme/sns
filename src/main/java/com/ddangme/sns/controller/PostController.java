@@ -30,7 +30,7 @@ public class PostController {
     @PostMapping
     public Response<Void> create(@RequestBody PostCreateRequest request, Authentication authentication) {
         User loginUser = getLoginUser(authentication);
-        postService.create(request.getTitle(), request.getBody(), loginUser);
+        postService.create(request.getTitle(), request.getBody(), loginUser.getId());
 
         return Response.success();
     }
@@ -38,7 +38,7 @@ public class PostController {
     @PutMapping("/{postId}")
     public Response<PostResponse> modify(@PathVariable Integer postId, @RequestBody PostModifyRequest request, Authentication authentication) {
         User loginUser = getLoginUser(authentication);
-        Post post = postService.modify(postId, request.getTitle(), request.getBody(), loginUser);
+        Post post = postService.modify(postId, request.getTitle(), request.getBody(), loginUser.getId());
 
         return Response.success(PostResponse.fromPost(post));
     }
@@ -46,7 +46,7 @@ public class PostController {
     @DeleteMapping("/{postId}")
     public Response<Void> delete(@PathVariable Integer postId, Authentication authentication) {
         User loginUser = getLoginUser(authentication);
-        postService.delete(loginUser, postId);
+        postService.delete(loginUser.getId(), postId);
 
         return Response.success();
     }
@@ -59,13 +59,13 @@ public class PostController {
     @GetMapping("my")
     public Response<Page<PostResponse>> my(Pageable pageable, Authentication authentication) {
         User loginUser = getLoginUser(authentication);
-        return Response.success(postService.myFeedList(loginUser, pageable).map(PostResponse::fromPost));
+        return Response.success(postService.myFeedList(loginUser.getId(), pageable).map(PostResponse::fromPost));
     }
 
     @PostMapping("/{postId}/likes")
     public Response<Void> like(@PathVariable Integer postId, Authentication authentication) {
         User loginUser = getLoginUser(authentication);
-        postService.like(postId, loginUser);
+        postService.like(postId, loginUser.getId());
 
         return Response.success();
     }
@@ -78,7 +78,7 @@ public class PostController {
     @PostMapping("/{postId}/comments")
     public Response<Void> comment(@PathVariable Integer postId, @RequestBody PostCommentRequest request, Authentication authentication) {
         User loginUser = getLoginUser(authentication);
-        postService.comment(postId, loginUser, request.getComment());
+        postService.comment(postId, loginUser.getId(), request.getComment());
 
         return Response.success();
     }

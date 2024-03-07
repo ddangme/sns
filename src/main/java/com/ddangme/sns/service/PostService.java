@@ -23,17 +23,17 @@ public class PostService {
     private final AlarmEntityRepository alarmEntityRepository;
 
     @Transactional
-    public void create(String title, String body, User loginUser) {
+    public void create(String title, String body, Integer loginUserId) {
         // save post
-        postEntityRepository.save(PostEntity.of(title, body, loginUser.getId()));
+        postEntityRepository.save(PostEntity.of(title, body, loginUserId));
     }
 
     @Transactional
-    public Post modify(Integer postId, String title, String body, User loginUser) {
+    public Post modify(Integer postId, String title, String body, Integer loginUserId) {
         PostEntity postEntity = getPostEntity(postId);
 
-        if (postEntity.noSameUser(loginUser.getId())) {
-            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", loginUser.getId(), postId));
+        if (postEntity.noSameUser(loginUserId)) {
+            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", loginUserId, postId));
         }
 
         postEntity.modify(title, body);
@@ -42,11 +42,11 @@ public class PostService {
     }
 
     @Transactional
-    public void delete(User loginUser, Integer postId) {
+    public void delete(Integer loginUserId, Integer postId) {
         PostEntity postEntity = getPostEntity(postId);
 
-        if (postEntity.noSameUser(loginUser.getId())) {
-            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", loginUser.getId(), postId));
+        if (postEntity.noSameUser(loginUserId)) {
+            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", loginUserId, postId));
         }
 
         likeEntityRepository.deleteAllByPost(postEntity);
@@ -58,8 +58,8 @@ public class PostService {
         return postEntityRepository.findAll(pageable).map(Post::fromEntity);
     }
 
-    public Page<Post> myFeedList(User user, Pageable pageable) {
-        return postEntityRepository.findAllByUserId(user.getId(), pageable).map(Post::fromEntity);
+    public Page<Post> myFeedList(Integer loginUserId, Pageable pageable) {
+        return postEntityRepository.findAllByUserId(loginUserId, pageable).map(Post::fromEntity);
     }
 
     private UserEntity getUserEntity(String userName) {
@@ -73,16 +73,16 @@ public class PostService {
     }
 
     @Transactional
-    public void like(Integer postId, User user) {
+    public void like(Integer postId, Integer loginUserId) {
         PostEntity postEntity = getPostEntity(postId);
 
-        likeEntityRepository.findByUserIdAndPostId(user.getId(), postId)
+        likeEntityRepository.findByUserIdAndPostId(loginUserId, postId)
                 .ifPresent(it -> {
-                    throw new SnsApplicationException(ErrorCode.ALREADY_LIKED, String.format("userId %s already like post %d", user.getId(), postId));
+                    throw new SnsApplicationException(ErrorCode.ALREADY_LIKED, String.format("userId %s already like post %d", loginUserId, postId));
                 });
 
-        likeEntityRepository.save(LikeEntity.of(postEntity, user.getId()));
-        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_LIKE_ON_POST, new AlarmArgs(user.getId(), postId)));
+        likeEntityRepository.save(LikeEntity.of(postEntity, loginUserId));
+        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_LIKE_ON_POST, new AlarmArgs(loginUserId, postId)));
     }
 
     @Transactional
@@ -93,11 +93,11 @@ public class PostService {
     }
 
     @Transactional
-    public void comment(Integer postId, User user, String comment) {
+    public void comment(Integer postId, Integer loginUserId, String comment) {
         PostEntity postEntity = getPostEntity(postId);
 
-        commentEntityRepository.save(CommentEntity.of(postEntity, user.getId(), comment));
-        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_COMMENT_ON_POST, new AlarmArgs(user.getId(), postId)));
+        commentEntityRepository.save(CommentEntity.of(postEntity, loginUserId, comment));
+        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_COMMENT_ON_POST, new AlarmArgs(loginUserId, postId)));
     }
 
     public Page<Comment> getComments(Integer postId, Pageable pageable) {
