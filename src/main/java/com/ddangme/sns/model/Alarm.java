@@ -12,7 +12,6 @@ public class Alarm {
 
     private Integer id;
     private AlarmType alarmType;
-    private User user;
     private AlarmArgs args;
     private Timestamp registeredAt;
     private Timestamp updatedAt;
@@ -22,7 +21,6 @@ public class Alarm {
         return new Alarm(
                 entity.getId(),
                 entity.getAlarmType(),
-                User.fromEntity(entity.getUser()),
                 entity.getArgs(),
                 entity.getRegisteredAt(),
                 entity.getUpdatedAt(),

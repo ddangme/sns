@@ -35,7 +35,7 @@ public class AlarmEntity {
     @Enumerated(EnumType.STRING)
     private AlarmType alarmType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
