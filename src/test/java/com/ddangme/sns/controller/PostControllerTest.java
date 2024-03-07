@@ -163,7 +163,7 @@ public class PostControllerTest {
     @WithMockUser
     void feed_list() throws Exception {
         // TODO: mocking
-        when(postService.list(any())).thenReturn(Page.empty());
+        when(postService.feedList(any())).thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -176,7 +176,7 @@ public class PostControllerTest {
     @WithAnonymousUser
     void feed_list_none_login() throws Exception {
         // TODO: mocking
-        when(postService.list(any())).thenReturn(Page.empty());
+        when(postService.feedList(any())).thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON))
@@ -189,7 +189,7 @@ public class PostControllerTest {
     @WithMockUser
     void my_feed_list() throws Exception {
         // TODO: mocking
-        when(postService.my(any(), any())).thenReturn(Page.empty());
+        when(postService.myFeedList(any(), any())).thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/v1/posts/my")
                         .contentType(MediaType.APPLICATION_JSON))

@@ -1,8 +1,7 @@
 package com.ddangme.sns.model.entity;
 
-import com.ddangme.sns.model.User;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -13,9 +12,9 @@ import java.time.Instant;
 @Entity
 @Table(name = "post")
 @Getter
-@Setter
 @SQLDelete(sql = "UPDATE post SET deleted_at = NOW() WHERE post_id = ?")
 @Where(clause = "deleted_at is NULL")
+@NoArgsConstructor
 public class PostEntity {
 
     @Id
@@ -38,6 +37,12 @@ public class PostEntity {
 
     private Timestamp deletedAt;
 
+    public PostEntity(String title, String body, Integer userId) {
+        this.title = title;
+        this.body = body;
+        this.user = UserEntity.of(userId);
+    }
+
     @PrePersist
     void registeredAt() {
         this.registeredAt = Timestamp.from(Instant.now());
@@ -48,13 +53,19 @@ public class PostEntity {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
-    public static PostEntity of(String title, String body, UserEntity userEntity) {
-        PostEntity entity = new PostEntity();
-        entity.setTitle(title);
-        entity.setBody(body);
-        entity.setUser(userEntity);
-
-        return entity;
+    public static PostEntity of(String title, String body, Integer userId) {
+        return new PostEntity(title, body, userId);
     }
+
+    public boolean noSameUser(Integer userId) {
+        return !user.getId().equals(userId);
+    }
+
+    public void modify(String title, String body) {
+        this.title = title;
+        this.body = body;
+    }
+
+
 
 }

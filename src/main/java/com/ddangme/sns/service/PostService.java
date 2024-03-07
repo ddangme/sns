@@ -2,10 +2,7 @@ package com.ddangme.sns.service;
 
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
-import com.ddangme.sns.model.AlarmArgs;
-import com.ddangme.sns.model.AlarmType;
-import com.ddangme.sns.model.Comment;
-import com.ddangme.sns.model.Post;
+import com.ddangme.sns.model.*;
 import com.ddangme.sns.model.entity.*;
 import com.ddangme.sns.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -26,44 +23,30 @@ public class PostService {
     private final AlarmEntityRepository alarmEntityRepository;
 
     @Transactional
-    public void create(String title, String body, String userName) {
-        // find user
-        UserEntity userEntity = userEntityRepository.findByUserName(userName)
-                .orElseThrow(() ->
-                        new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", userName)));
-
+    public void create(String title, String body, User loginUser) {
         // save post
-        postEntityRepository.save(PostEntity.of(title, body, userEntity));
+        postEntityRepository.save(PostEntity.of(title, body, loginUser.getId()));
     }
 
     @Transactional
-    public Post modify(String userName, Integer postId, String title, String body) {
-        UserEntity userEntity = getUserEntity(userName);
-
-        // post exist
+    public Post modify(Integer postId, String title, String body, User loginUser) {
         PostEntity postEntity = getPostEntity(postId);
 
-        // post permission
-        if (postEntity.getUser() != userEntity) {
-            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", userName, postId));
+        if (postEntity.noSameUser(loginUser.getId())) {
+            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", loginUser.getId(), postId));
         }
 
-        postEntity.setTitle(title);
-        postEntity.setBody(body);
+        postEntity.modify(title, body);
 
         return Post.fromEntity(postEntityRepository.saveAndFlush(postEntity));
     }
 
     @Transactional
-    public void delete(String userName, Integer postId) {
-        UserEntity userEntity = getUserEntity(userName);
-
-        // post exist
+    public void delete(User loginUser, Integer postId) {
         PostEntity postEntity = getPostEntity(postId);
 
-        // post permission
-        if (postEntity.getUser() != userEntity) {
-            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", userName, postId));
+        if (postEntity.noSameUser(loginUser.getId())) {
+            throw new SnsApplicationException(ErrorCode.INVALID_PERMISSION, String.format("%s has no permission with %s", loginUser.getId(), postId));
         }
 
         likeEntityRepository.deleteAllByPost(postEntity);
@@ -71,13 +54,12 @@ public class PostService {
         postEntityRepository.delete(postEntity);
     }
 
-    public Page<Post> list(Pageable pageable) {
+    public Page<Post> feedList(Pageable pageable) {
         return postEntityRepository.findAll(pageable).map(Post::fromEntity);
     }
 
-    public Page<Post> my(String userName, Pageable pageable) {
-        UserEntity userEntity = getUserEntity(userName);
-        return postEntityRepository.findAllByUser(userEntity, pageable).map(Post::fromEntity);
+    public Page<Post> myFeedList(User user, Pageable pageable) {
+        return postEntityRepository.findAllByUserId(user.getId(), pageable).map(Post::fromEntity);
     }
 
     private UserEntity getUserEntity(String userName) {

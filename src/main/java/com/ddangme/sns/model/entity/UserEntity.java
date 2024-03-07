@@ -54,4 +54,10 @@ public class UserEntity {
 
         return userEntity;
     }
+    public static UserEntity of(Integer userId) {
+        UserEntity userEntity = new UserEntity();
+        userEntity.setId(userId);
+
+        return userEntity;
+    }
 }

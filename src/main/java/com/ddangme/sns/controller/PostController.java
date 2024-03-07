@@ -6,8 +6,12 @@ import com.ddangme.sns.controller.request.PostModifyRequest;
 import com.ddangme.sns.controller.response.CommentResponse;
 import com.ddangme.sns.controller.response.PostResponse;
 import com.ddangme.sns.controller.response.Response;
+import com.ddangme.sns.exception.ErrorCode;
+import com.ddangme.sns.exception.SnsApplicationException;
 import com.ddangme.sns.model.Post;
+import com.ddangme.sns.model.User;
 import com.ddangme.sns.service.PostService;
+import com.ddangme.sns.util.ClassUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,58 +29,69 @@ public class PostController {
 
     @PostMapping
     public Response<Void> create(@RequestBody PostCreateRequest request, Authentication authentication) {
-        postService.create(request.getTitle(), request.getBody(), authentication.getName());
+        User loginUser = getLoginUser(authentication);
+        postService.create(request.getTitle(), request.getBody(), loginUser);
 
         return Response.success();
     }
 
     @PutMapping("/{postId}")
     public Response<PostResponse> modify(@PathVariable Integer postId, @RequestBody PostModifyRequest request, Authentication authentication) {
-        Post post = postService.modify(authentication.getName(), postId, request.getTitle(), request.getBody());
+        User loginUser = getLoginUser(authentication);
+        Post post = postService.modify(postId, request.getTitle(), request.getBody(), loginUser);
 
         return Response.success(PostResponse.fromPost(post));
     }
 
     @DeleteMapping("/{postId}")
     public Response<Void> delete(@PathVariable Integer postId, Authentication authentication) {
-        postService.delete(authentication.getName(), postId);
+        User loginUser = getLoginUser(authentication);
+        postService.delete(loginUser, postId);
 
         return Response.success();
     }
 
     @GetMapping
-    public Response<Page<PostResponse>> list(Pageable pageable, Authentication authentication) {
-        return Response.success(postService.list(pageable).map(PostResponse::fromPost));
+    public Response<Page<PostResponse>> list(Pageable pageable) {
+        return Response.success(postService.feedList(pageable).map(PostResponse::fromPost));
     }
 
     @GetMapping("my")
     public Response<Page<PostResponse>> my(Pageable pageable, Authentication authentication) {
-        return Response.success(postService.my(authentication.getName(), pageable).map(PostResponse::fromPost));
+        User loginUser = getLoginUser(authentication);
+        return Response.success(postService.myFeedList(loginUser, pageable).map(PostResponse::fromPost));
     }
 
     @PostMapping("/{postId}/likes")
     public Response<Void> like(@PathVariable Integer postId, Authentication authentication) {
+        User loginUser = getLoginUser(authentication);
         postService.like(postId, authentication.getName());
 
         return Response.success();
     }
 
     @GetMapping("/{postId}/likes")
-    public Response<Long> likeCount(@PathVariable Integer postId, Authentication authentication) {
+    public Response<Long> likeCount(@PathVariable Integer postId) {
         return Response.success(postService.likeCount(postId));
     }
 
     @PostMapping("/{postId}/comments")
     public Response<Void> comment(@PathVariable Integer postId, @RequestBody PostCommentRequest request, Authentication authentication) {
+        User loginUser = getLoginUser(authentication);
         postService.comment(postId, authentication.getName(), request.getComment());
 
         return Response.success();
     }
 
     @GetMapping("/{postId}/comments")
-    public Response<Page<CommentResponse>> comment(@PathVariable Integer postId, Pageable pageable, Authentication authentication) {
+    public Response<Page<CommentResponse>> comment(@PathVariable Integer postId, Pageable pageable) {
         Page<CommentResponse> comments = postService.getComments(postId, pageable).map(CommentResponse::fromComment);
 
         return Response.success(comments);
+    }
+
+    private User getLoginUser(Authentication authentication) {
+        return ClassUtils.getSafeCastInstance(authentication.getPrincipal(), User.class)
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.INTERNAL_SERVER_ERROR, "Casting to User class failed"));
     }
 }

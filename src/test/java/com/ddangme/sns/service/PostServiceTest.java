@@ -226,7 +226,7 @@ public class PostServiceTest {
         Pageable pageable = mock(Pageable.class);
         when(postEntityRepository.findAll(pageable)).thenReturn(Page.empty());
 
-        assertThatCode(() -> postService.list(pageable)).doesNotThrowAnyException();
+        assertThatCode(() -> postService.feedList(pageable)).doesNotThrowAnyException();
     }
 
     @DisplayName("내 피드 목록 - 정상 동작")
@@ -238,7 +238,7 @@ public class PostServiceTest {
         when(userEntityRepository.findByUserName(any())).thenReturn(Optional.of(user));
         when(postEntityRepository.findAllByUser(user, pageable)).thenReturn(Page.empty());
 
-        assertThatCode(() -> postService.my(any(), pageable)).doesNotThrowAnyException();
+        assertThatCode(() -> postService.myFeedList(any(), pageable)).doesNotThrowAnyException();
     }
 
 
