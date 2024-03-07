@@ -2,16 +2,12 @@ package com.ddangme.sns.service;
 
 import com.ddangme.sns.exception.ErrorCode;
 import com.ddangme.sns.exception.SnsApplicationException;
+import com.ddangme.sns.model.AlarmArgs;
+import com.ddangme.sns.model.AlarmType;
 import com.ddangme.sns.model.Comment;
 import com.ddangme.sns.model.Post;
-import com.ddangme.sns.model.entity.CommentEntity;
-import com.ddangme.sns.model.entity.LikeEntity;
-import com.ddangme.sns.model.entity.PostEntity;
-import com.ddangme.sns.model.entity.UserEntity;
-import com.ddangme.sns.repository.CommentEntityRepository;
-import com.ddangme.sns.repository.LikeEntityRepository;
-import com.ddangme.sns.repository.PostEntityRepository;
-import com.ddangme.sns.repository.UserEntityRepository;
+import com.ddangme.sns.model.entity.*;
+import com.ddangme.sns.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +23,7 @@ public class PostService {
     private final UserEntityRepository userEntityRepository;
     private final LikeEntityRepository likeEntityRepository;
     private final CommentEntityRepository commentEntityRepository;
+    private final AlarmEntityRepository alarmEntityRepository;
 
     @Transactional
     public void create(String title, String body, String userName) {
@@ -102,6 +99,7 @@ public class PostService {
                 });
 
         likeEntityRepository.save(LikeEntity.of(postEntity, userEntity));
+        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_LIKE_ON_POST, new AlarmArgs(userEntity.getId(), postId)));
     }
 
     @Transactional
@@ -117,6 +115,7 @@ public class PostService {
         PostEntity postEntity = getPostEntity(postId);
 
         commentEntityRepository.save(CommentEntity.of(postEntity, userEntity, comment));
+        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_COMMENT_ON_POST, new AlarmArgs(userEntity.getId(), postId)));
     }
 
     public Page<Comment> getComments(Integer postId, Pageable pageable) {
